@@ -1,4 +1,5 @@
 payload:
+  # --- 你的原始规则 ---
   - DOMAIN,lf3-static.bytednsdoc.com
   - DOMAIN,v5-dy-o-abtest.zjcdn.com
   - DOMAIN-SUFFIX,amemv.com
@@ -12,3 +13,22 @@ payload:
   - DOMAIN-SUFFIX,pstatp.com
   - DOMAIN-SUFFIX,snssdk.com
   - DOMAIN-SUFFIX,toutiao.com
+
+  # --- 必须补充的关键域名 ---
+  - DOMAIN-SUFFIX,douyin.com        # 核心：缺少这个网页版和部分API会挂
+  - DOMAIN-SUFFIX,douyinliving.com  # 核心：直播流媒体专用域名
+  - DOMAIN-SUFFIX,douyinstatic.com  # 静态资源
+  
+  # --- 字节跳动通用基础设施 (建议加上) ---
+  - DOMAIN-SUFFIX,bytedance.com     # 字节跳动官网/部分后台
+  - DOMAIN-SUFFIX,bytedns.net       # 字节内部DNS服务
+  - DOMAIN-SUFFIX,bytednsdoc.com    # 你的第一条规则其实是这个的子集
+  - DOMAIN-SUFFIX,byteimg.com       # 图片存储
+  - DOMAIN-SUFFIX,bytescm.com       # 供应链/电商相关
+  - DOMAIN-SUFFIX,bytetos.com       # 对象存储服务
+  - DOMAIN-SUFFIX,ibytedtos.com     # 核心对象存储(视频/图片)
+  - DOMAIN-SUFFIX,zijieapi.com      # 字节API
+  - DOMAIN-SUFFIX,ecombdimg.com     # 抖音电商图片
+  
+  # --- 兜底规则 (防止新域名漏网) ---
+  - DOMAIN-KEYWORD,douyin

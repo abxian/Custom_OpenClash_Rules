@@ -1,4 +1,13 @@
 payload:
+  # Soul App Domain Rules
+  - DOMAIN-SUFFIX,soulapp.cn
+  - DOMAIN-SUFFIX,soulapp-inc.cn
+  - DOMAIN-SUFFIX,soulapp.com
+  - DOMAIN-SUFFIX,soulapp.hk
+  - DOMAIN-SUFFIX,wepie.com
+  - DOMAIN-KEYWORD,soulapp
+  
+  # Soul App IP Rules
   - IP-CIDR,114.215.255.94/32,no-resolve
   - IP-CIDR,116.62.108.43/32,no-resolve
   - IP-CIDR,116.62.247.96/32,no-resolve
@@ -21,6 +30,9 @@ payload:
   - IP-CIDR,47.98.137.249/32,no-resolve
   - IP-CIDR,47.98.54.106/32,no-resolve
   - IP-CIDR,8.210.3.170/32,no-resolve
-  - IP-CIDR6,2400:3200:1500::169/32,no-resolve
-  - IP-CIDR6,2400:3200:1500::1fb/32,no-resolve
-  - IP-CIDR6,2400:3200:1500::70/32,no-resolve
+  
+  # Soul IPv6 Rules
+  # 注意：单IP建议用 /128，/32范围非常大，但如果是官方列表则保留
+  - IP-CIDR6,2400:3200:1500::169/128,no-resolve
+  - IP-CIDR6,2400:3200:1500::1fb/128,no-resolve
+  - IP-CIDR6,2400:3200:1500::70/128,no-resolve

@@ -1,0 +1,93 @@
+# ================================================================
+# 跨境电商 · 防泄漏基础配置 (subconverter clash_rule_base / 手动前置)
+# 用途：为订阅补上顶层 dns / sniffer / ipv6 / profile 防泄漏设置
+#   - 自建 subconverter：设为 clash_rule_base
+#   - 公共后端：把本文件内容拼到生成配置的最前面（proxies 之前）
+# 注意：proxies / proxy-groups / rules 由 subconverter 生成，本文件不含
+# ================================================================
+port: 7890
+socks-port: 7891
+allow-lan: true
+mode: Rule
+log-level: info
+external-controller: 127.0.0.1:9090
+
+# ===== 防泄漏 / 跨境电商防关联 全局设置 =====
+ipv6: false                 # 关闭 IPv6，防止 IPv6 绕过代理泄漏真实归属地
+unified-delay: true
+tcp-concurrent: true
+profile:
+  store-selected: true      # 记住每个策略组手动选择的节点（电商防关联关键：账号固定 IP）
+  store-fake-ip: true
+
+dns:
+  enable: true
+  ipv6: false               # DNS 不返回 IPv6，配合上面彻底关闭 IPv6 泄漏
+  listen: 0.0.0.0:1053
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:            # 这些域名不走 fake-ip，直接真实解析
+    - '*.lan'
+    - '*.local'
+    - '+.msftconnecttest.com'
+    - '+.msftncsi.com'
+    - localhost.ptlogin2.qq.com
+    - '+.qq.com'
+    - '+.wechat.com'
+    - dns.msftncsi.com
+  default-nameserver:        # 用于解析下面 DoH 服务器域名的引导 DNS
+    - 223.5.5.5
+    - 119.29.29.29
+  nameserver:                # 国内域名走国内加密 DNS
+    - https://223.5.5.5/dns-query
+    - https://doh.pub/dns-query
+  fallback:                  # 国外域名走境外加密 DNS，防止 DNS 污染/泄漏
+    - https://1.1.1.1/dns-query
+    - https://8.8.8.8/dns-query
+    - https://dns.google/dns-query
+    - tls://8.8.4.4:853
+  fallback-filter:
+    geoip: true
+    geoip-code: CN           # 非中国大陆 IP 的解析结果一律采用 fallback（境外）DNS
+    ipcidr:
+      - 240.0.0.0/4
+      - 0.0.0.0/32
+    domain:                  # 这些平台强制走境外 DNS 解析，避免被 CDN 定位到国内
+      - '+.google.com'
+      - '+.facebook.com'
+      - '+.fbcdn.net'
+      - '+.instagram.com'
+      - '+.twitter.com'
+      - '+.x.com'
+      - '+.tiktok.com'
+      - '+.tiktokv.com'
+      - '+.telegram.org'
+      - '+.youtube.com'
+      - '+.openai.com'
+      - '+.chatgpt.com'
+      - '+.anthropic.com'
+      - '+.claude.ai'
+      - '+.amazon.com'
+      - '+.shopify.com'
+      - '+.paypal.com'
+      - '+.stripe.com'
+
+# ===== 域名嗅探：从 IP 直连 / QUIC(HTTP3) 流量中还原域名 =====
+# 防止 App 直接用 IP 连接绕过域名规则，导致分流失效 / 真实 IP 泄漏 / 账号关联
+sniffer:
+  enable: true
+  force-dns-mapping: true
+  parse-pure-ip: true
+  override-destination: false
+  sniff:
+    TLS:
+      ports: [443, 8443]
+    HTTP:
+      ports: [80, 8080-8880]
+      override-destination: true
+    QUIC:
+      ports: [443]
+  skip-domain:
+    - '+.push.apple.com'
+    - Mijia Cloud
+    - dlg.io.mi.com

@@ -94,6 +94,48 @@ https://api.dler.io/sub?target=clash&url=https%3A%2F%2Fjc.example.com%2Fsub%3Fto
 
 > 🔒 **安全提醒**：用公共后端时，你的订阅链接（含 token/密钥）会经过对方服务器。**专线/付费节点强烈建议自建后端。**
 
+### 4.1 自建后端 + 防泄漏 base（关键：让订阅自带 dns / sniffer / ipv6）
+
+模板只生成「策略组 + 规则」，顶层 `dns / sniffer / ipv6` 来自后端的 **`clash_rule_base`（基础配置）**。
+公共后端改不了它，所以要让防泄漏写进订阅，必须**自建后端**并把 base 换成本项目的
+[`Custom_Ecommerce_Base.yaml`](./Custom_Ecommerce_Base.yaml)。
+
+**① 部署后端（Docker）**
+```bash
+docker run -d --name subserver -p 25501:25500 asdlokj1qpi23/subconverter:latest
+```
+
+**② 把 `clash_rule_base` 指向防泄漏 base**（配置文件是 `/base/pref.toml`）
+```bash
+docker exec subserver sh -c '
+URL="https://raw.githubusercontent.com/abxian/Custom_OpenClash_Rules/main/templates/Custom_Ecommerce_Base.yaml"
+cp /base/pref.toml /base/pref.toml.bak
+sed -i "s#^clash_rule_base = .*#clash_rule_base = \"$URL\"#" /base/pref.toml
+grep -n "^clash_rule_base" /base/pref.toml
+'
+docker restart subserver
+```
+
+**③ 验证**（输出顶部应出现 `dns:` / `sniffer:` / `ipv6: false`）
+```bash
+curl -s "http://127.0.0.1:25501/sub?target=clash&url=ss://YWVzLTI1Ni1nY206dGVzdA%3D%3D@1.1.1.1:8388%23test&config=https%3A%2F%2Fraw.githubusercontent.com%2Fabxian%2FCustom_OpenClash_Rules%2Fmain%2Ftemplates%2FCustom_Ecommerce.ini" | head -40
+```
+
+**④ 前端指向自建后端**：改 sub-web 的 `.env`：
+```ini
+VUE_APP_SUBCONVERTER_DEFAULT_BACKEND = "http://你的域名:25501"
+```
+
+**⑤ 持久化**：容器内改动在 `docker rm` 重建时会丢失，重建时挂载配置：
+```bash
+-v /你的路径/pref.toml:/base/pref.toml
+```
+
+> **关于 `dns.listen: 0.0.0.0:1053`**：这是 Clash 内置 DNS 的监听端口。
+> - **OpenClash / 路由器场景必须用非 53 端口** —— 53 已被 dnsmasq 占用，改成 53 会冲突导致 DNS 崩溃；
+> - fake-ip + TUN 模式下 DNS 被劫持，与该端口无关。
+> - **结论：保持 1053 无任何危害**，仅当你要把某台设备的 DNS 直接指向 Clash:53 时才需要 53。
+
 ---
 
 ## 五、生成后在 OpenClash 的设置
@@ -111,9 +153,9 @@ https://api.dler.io/sub?target=clash&url=https%3A%2F%2Fjc.example.com%2Fsub%3Fto
 ## 六、常见问题
 
 - **某些端口的服务连不上（如自建服务、游戏、PT 用了非标端口）？**
-  这类流量走 `🔀 非标端口` 组，默认**直连**。若该服务必须走代理，进这个组手动切一个**支持全端口**的节点即可（很多节点只支持 80/443）。
+  这类流量走 `非标端口` 组，默认**直连**。若该服务必须走代理，进这个组手动切一个**支持全端口**的节点即可（很多节点只支持 80/443）。
 - **节点怎么选？**
-  模板不按地区分类，全部节点平铺在 `🚀 手动选择` 及各平台组里。跨境电商为每个账号在对应平台组里**钉一个固定节点**长期不变（防关联）。
+  模板不按地区分类，全部节点平铺在 `手动选择` 及各平台组里。跨境电商为每个账号在对应平台组里**钉一个固定节点**长期不变（防关联）。
 - **规则不更新？**
   规则走 jsdelivr 缓存，最长约 24h。要立即生效可把模板里的 `testingcf.jsdelivr.net` 换成 `raw.githubusercontent.com`。
 - **改了模板但订阅没变化？**

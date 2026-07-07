@@ -16,6 +16,7 @@ external-controller: 127.0.0.1:9090
 ipv6: false                 # 关闭 IPv6，防止 IPv6 绕过代理泄漏真实归属地
 unified-delay: true
 tcp-concurrent: true
+global-client-fingerprint: chrome   # 统一 TLS(uTLS)指纹为 Chrome，降低"代理握手"被识别的概率
 profile:
   store-selected: true      # 记住每个策略组手动选择的节点（电商防关联关键：账号固定 IP）
   store-fake-ip: true
@@ -35,6 +36,9 @@ dns:
     - '+.qq.com'
     - '+.wechat.com'
     - dns.msftncsi.com
+    - '+.stun.*.*'            # STUN 交给规则拦截(WebRTC组)，不走 fake-ip
+    - '+.stun.*.*.*'
+    - '+.pool.ntp.org'       # 校时直连，避免 fake-ip 干扰
   default-nameserver:        # 用于解析下面 DoH 服务器域名的引导 DNS
     - 223.5.5.5
     - 119.29.29.29

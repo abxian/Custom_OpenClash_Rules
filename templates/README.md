@@ -97,7 +97,7 @@ sniffer:
 
 平台判定“关联账号”的两大维度：**出口 IP** 和 **浏览器指纹**。本方案负责**出口 IP 侧**：
 
-- 每个平台都是独立的 `select` 策略组：`📘 Facebook`、`📷 Instagram`、`🐦 Twitter`、`🎵 TikTok`、`🛒 国际电商`、`🤖 AI服务`……
+- 核心平台都是独立的 `select` 策略组：`Facebook`、`Instagram`、`Twitter`、`TikTok`、`Amazon`、`Temu`、`SHEIN`、`eBay`、`AliExpress`、`Shopify`、`AI服务`……长尾电商由 `其他国际电商` 统一兜底。
 - `profile.store-selected: true` —— **记住每个组手动选定的节点，重启不丢**。
 - 组内优先列出**固定 IP 的直连节点**（如 `美国01直连`、`阿曼01直连`），这类节点 IP 稳定，最适合“一账号一 IP”。
 
@@ -105,7 +105,7 @@ sniffer:
 1. 一个账号 = 一个固定出口节点，长期不变（切 IP 本身就是风控信号）。
 2. 不要给电商/社媒账号用 `♻️ 自动选择`（会自动切换 IP → 触发关联/风控）。
 3. 多账号请扩充节点池，做到 IP 互不重叠；配合独立浏览器指纹环境（如多开浏览器/指纹浏览器）效果最佳。
-4. 广告/追踪域名保持 `REJECT`（已内置），切断第三方指纹回传。
+4. 模板不内置广告拦截，避免影响广告投放、归因和平台后台；需要拦截时应另建规则并充分验证业务链路。
 
 ---
 
@@ -144,7 +144,7 @@ https://<你的subconverter后端>/sub?target=clash
 
 **模板做了什么**（`templates/Custom_Ecommerce.ini`）：
 - 规则全部引用 `stash-override/rule/*.list`（Facebook / TikTok / Amazon / OpenAI / Claude / Gemini / PayPal / Stripe …），随仓库更新自动生效。
-- 生成与 `config.yaml` 一致的分组：社媒独立组、`🛒 国际电商`、`🤖 AI服务`、`🎥 流媒体`、`🎥 WebRTC(默认REJECT)`、地区自动测速组、`🔒 专线中转`。
+- 生成核心社媒与电商独立组、`其他国际电商` 长尾兜底组，以及 `AI服务`、`流媒体`、`WebRTC(默认REJECT)`、自动测速和专线中转等分组。
 - 规则顺序：直连兜底 → 广告拦截 → WebRTC拦截 → 各平台 → 境外兜底(GFW) → 国内兜底(ChinaMax/GEOSITE:cn) → `FINAL 走代理`。
 
 ---
@@ -158,7 +158,8 @@ https://<你的subconverter后端>/sub?target=clash
 | 🔒 专线中转 / 专线中转 | select/url-test | 专线/中转节点 |
 | 📘 Facebook / 📷 Instagram / 🐦 Twitter / 🎵 TikTok / 📲 Telegram | select | 社媒各自独立，账号级固定 IP |
 | 🤖 AI服务 | select | ChatGPT / Claude / Gemini / Copilot 等 |
-| 🛒 国际电商 | select | Amazon / eBay / Shopify / PayPal / Stripe … 固定节点 |
+| Amazon / Temu / SHEIN / eBay / AliExpress / Shopify | select | 核心电商平台分别固定节点 |
+| 其他国际电商 | select | Etsy / Lazada / Shopee / Walmart 等长尾平台统一兜底 |
 | 🎥 流媒体 | select | YouTube / Netflix / Disney / Spotify |
 | 🎥 WebRTC | select | 默认 **REJECT**，防真实 IP 探测 |
 | 🎯 全球直连 / 🛑 全球拦截 / 🐟 漏网之鱼 | select | 直连 / 广告拦截 / 兜底(走代理) |

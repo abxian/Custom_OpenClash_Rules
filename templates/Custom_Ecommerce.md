@@ -12,7 +12,7 @@
 它的作用：把「你的机场 / 专线订阅」里的裸节点，**自动套上**这套跨境电商结构 ——
 
 - 防泄漏：Fake-IP DNS、关 IPv6、拦截 WebRTC(STUN)、FINAL 走代理
-- 平台分组：24 个策略组，社媒 / 电商 / 支付 / 验证 / 物流 全覆盖（见下表）
+- 平台分组：30 个策略组，社媒 / 电商 / 支付 / 验证 / 物流 全覆盖（见下表）
 - 非标端口：`非标端口` 组统一接管 80/443 之外的端口（部分节点不支持非标端口）
 - 分流规则：**平台清单 + GEOSITE 双保险**，清单来自 [`abxian/stash-override`](https://github.com/abxian/stash-override)，随仓库自动更新
 - 不含广告拦截，便于广告投流
@@ -30,7 +30,13 @@
 | **TikTok** | TikTok |
 | **Telegram** | Telegram |
 | **社交媒体** | Snapchat、Reddit、Pinterest、LinkedIn、Discord、Line、Kakao、VK、Quora、Tumblr、Signal |
-| **国际电商** | Temu、Shein、Amazon、eBay、Etsy、AliExpress、Shopify、Lazada、Shopee、MercadoLibre、Walmart、Rakuten、BestBuy、Alibaba、Target、Costco、Wish、Coupang |
+| **Amazon** | Amazon 商城、卖家后台、广告及相关生态域名 |
+| **Temu** | Temu |
+| **SHEIN** | SHEIN |
+| **eBay** | eBay |
+| **AliExpress** | AliExpress |
+| **Shopify** | Shopify 商店与后台 |
+| **其他国际电商** | Etsy、Lazada、Shopee、MercadoLibre、Walmart、Rakuten、BestBuy、Alibaba、Target、Costco、Wish、Coupang 等长尾平台 |
 | **支付平台** | PayPal、Stripe、Payoneer、Airwallex、Wise |
 | **验证服务** | Cloudflare Turnstile、hCaptcha、reCAPTCHA、Arkose/FunCaptcha、GeeTest、DataDome、PerimeterX、Imperva、ThreatMetrix、FingerprintJS、Sift、Kount、Riskified、Signifyd、Forter、Auth0、Okta、Twilio/Authy |
 | **物流快递** | DHL、FedEx、UPS、USPS、TNT、Aramex、DPD、GLS、Evri、Purolator、OnTrac、LaserShip、各国邮政（英/加/澳/日/韩/法/德/荷/西/意/北欧）、17TRACK、AfterShip、TrackingMore、4PX、云途、燕文、顺友、万邑通、谷仓、J&T、Flexport、**海关税务**（US CBP、UK HMRC、Avalara、TaxJar） |
@@ -67,6 +73,7 @@
 | 支付平台 | AI服务 | OpenAI 清单内含 `stripe.com` 计费域名 |
 | 验证服务 | 谷歌服务 | `Google.list` 内含 `recaptcha.net` |
 | 各平台组 | 验证服务 | 让平台自有验证端点跟随各自平台 |
+| Amazon / Temu / SHEIN / eBay / AliExpress / Shopify | 其他国际电商 | 聚合清单包含部分核心平台域名，独立规则必须优先命中 |
 
 > 另注：模板**不引用 `Global.list`**（3.2 万条，与 `geosite:geolocation-!cn` 完全重复，
 > 且会撑爆 subconverter 规则上限导致整个模板被拒、回退成默认配置）。
@@ -205,7 +212,7 @@ VUE_APP_SUBCONVERTER_DEFAULT_BACKEND = "http://你的域名:25501"
 
 ## 六、常见问题
 
-- **⚠️ 生成的配置里没有 `国际电商`/`支付平台` 这些组，反而是 `🔰 节点选择`/`🌍 国外媒体`？**
+- **⚠️ 生成的配置里没有 `Amazon`/`Temu`/`其他国际电商`/`支付平台` 这些组，反而是 `🔰 节点选择`/`🌍 国外媒体`？**
   说明**模板根本没生效**，subconverter 拒绝了它并回退成自带的默认配置——这也是「域名漏到其它节点」的典型症状。
   两个常见原因：
   1. **规则总量超上限**：某个引用的清单太大（例如 `Global.list` 有 3.2 万条），撑爆后端的 `max_allowed_rules`。
@@ -214,7 +221,7 @@ VUE_APP_SUBCONVERTER_DEFAULT_BACKEND = "http://你的域名:25501"
      解决：把同类平台合并成聚合清单（本模板即用 `Ecommerce_All` / `Social_All` 等），或在自建后端的
      `pref.toml` 里调大 `max_allowed_rulesets` / `max_allowed_rules`。
 
-  **自查方法**：生成订阅后看策略组名——出现 `国际电商`、`支付平台`、`验证服务` 才说明模板真正生效。
+  **自查方法**：生成订阅后看策略组名——出现 `Amazon`、`Temu`、`其他国际电商`、`支付平台`、`验证服务` 才说明模板真正生效。当前模板有 62 条 `ruleset=`，低于 subconverter 默认的 64 条上限。
 - **改了模板 / 清单，订阅却没变化？**
   三层缓存都要考虑：① 自建后端 → `docker restart subserver`；② GitHub raw 约 5 分钟；
   ③ jsdelivr 对分支引用（`@master`）可缓存数小时，可用 <https://www.jsdelivr.com/tools/purge> 刷新，

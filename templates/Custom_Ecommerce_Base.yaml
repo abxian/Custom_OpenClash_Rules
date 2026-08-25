@@ -39,12 +39,20 @@ dns:
     - '+.stun.*.*'            # STUN 交给规则拦截(WebRTC组)，不走 fake-ip
     - '+.stun.*.*.*'
     - '+.pool.ntp.org'       # 校时直连，避免 fake-ip 干扰
+    # ↓ 需要「直连」的服务：必须跳过 fake-ip，否则直连会连到不存在的假 IP
+    - '+.sxnn.de'            # 服务商域名(.de 后缀但服务器在国内)
+    - '+.lxy1015.top'        # 节点服务商域名
+    - '+.liangxin1.xyz'      # 节点服务商域名
   default-nameserver:        # 用于解析下面 DoH 服务器域名的引导 DNS
     - 223.5.5.5
     - 119.29.29.29
   nameserver:                # 国内域名走国内加密 DNS
     - https://223.5.5.5/dns-query
     - https://doh.pub/dns-query
+  nameserver-policy:         # 指定域名强制用国内 DNS 解析（配合 fake-ip-filter 使用）
+    '+.sxnn.de': [223.5.5.5, 119.29.29.29]
+    '+.lxy1015.top': [223.5.5.5, 119.29.29.29]
+    '+.liangxin1.xyz': [223.5.5.5, 119.29.29.29]
   proxy-server-nameserver:   # 关键：专门解析“节点服务器域名”，走可达的国内 DNS
     - https://223.5.5.5/dns-query   # 否则节点域名被 fallback(境外DoH)解析→未连代理前被墙→连不上任何节点
     - https://doh.pub/dns-query

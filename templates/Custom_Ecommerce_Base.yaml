@@ -24,6 +24,9 @@ profile:
 dns:
   enable: true
   ipv6: false               # DNS 不返回 IPv6，配合上面彻底关闭 IPv6 泄漏
+  use-hosts: true            # 保留 hosts 静态映射能力；不要写 hosts: null 覆盖掉
+  prefer-h3: false           # respect-rules 不建议与 DoH HTTP/3 同时使用
+  respect-rules: true        # DNS 上游连接也遵循下方规则，境外解析不从真实出口直连
   listen: 0.0.0.0:1053
   enhanced-mode: fake-ip
   fake-ip-range: 198.18.0.1/16

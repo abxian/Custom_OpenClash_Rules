@@ -120,10 +120,16 @@ sniffer:
 3. **DNS 设置**：
    - 勾选 `启用自定义上游 DNS 服务器`，让 `config.yaml` 里的 `dns:` 段生效；
    - 若开启了 OpenClash 自带的“DNS 劫持/重定向”，确保不与自定义 DNS 冲突（推荐：DNS 劫持开，上游用自定义）。
+   - 模板已启用 `respect-rules`，并配置独立的 `proxy-server-nameserver` 解析节点域名，避免 DNS 规则路由形成连接死锁。
 4. **关闭 IPv6**：`覆写设置 → 常规 → 禁用 IPv6`。
 5. **绑定网卡/接口**：按需绑定 LAN，确保内网设备全部经 OpenClash。
 6. **General → 其他**：开启 `TCP 并发`、`统一延迟`（配置里已含 `tcp-concurrent / unified-delay`）。
 7. 启动后到 **面板（Dashboard）** 里，进入各平台策略组，为每个账号手动指定固定节点。
+
+### SOCKS5 端口放在哪里配置
+
+- 单个通用 SOCKS5 入口：优先在 **OpenClash → 覆写设置 → 常规设置 → SOCKS5 端口** 中按设备配置。模板保留 `7891` 作为独立导入时的默认值，但 OpenClash 设备以覆写值为准，便于统一避开端口冲突和管理防火墙。
+- 多个端口分别固定到不同策略组：才使用 Mihomo `listeners`，并为每个 listener 明确设置唯一端口、监听地址、认证和 `proxy` 目标。这类配置依赖设备网段和策略组，不写入公共外贸模板。
 
 ---
 

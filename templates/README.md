@@ -145,6 +145,7 @@ https://<你的subconverter后端>/sub?target=clash
 **模板做了什么**（`templates/Custom_Ecommerce.ini`）：
 - 规则全部引用 `stash-override/rule/*.list`（Facebook / TikTok / Amazon / OpenAI / Claude / Gemini / PayPal / Stripe …），随仓库更新自动生效。
 - 生成核心社媒与电商独立组、`其他国际电商` 长尾兜底组，以及 `AI服务`、`流媒体`、`WebRTC(默认REJECT)`、自动测速和专线中转等分组。
+- 所有手动 `select` 组都带一个 `DIRECT` 人工应急选项；`自动选择`、`专线自动选择` 等 `url-test` 组不带 `DIRECT`，不会因测速自动暴露真实出口。
 - 规则顺序：直连兜底 → 广告拦截 → WebRTC拦截 → 各平台 → 境外兜底(GFW) → 国内兜底(ChinaMax/GEOSITE:cn) → `FINAL 走代理`。
 
 ---
